@@ -1,0 +1,23 @@
+{
+  "name": "create-biolerplate",
+  "version": "1.0.0",
+  "description": "A boilerPlate to create my backend",
+  "main": "write.js",
+  "type": "module",
+  "bin": {
+    "create-biolerplate": "./write.js"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "node write.js"
+  },
+  "keywords": [
+    "boilerplate",
+    "backend",
+    "scaffolding",
+    "express",
+    "mongoose"
+  ],
+  "author": "nishuR31",
+  "license": "ISC"
+}

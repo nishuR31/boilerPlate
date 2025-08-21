@@ -1,0 +1,933 @@
+// #!/usr/bin/env node
+
+import { promises as fs } from "fs";
+
+async function run() {
+  try {
+    // Folders to create
+    const dirs = [
+      "middleware",
+      "models",
+      "controllers",
+      "utils",
+      "routes",
+      "config",
+    ];
+
+    // Create dirs
+    await Promise.all(
+      dirs.map((dir) => fs.mkdir(`src/${dir}`, { recursive: true }))
+    );
+
+    // Files to create
+    const files = {
+      src: "server.js",
+      config: ["app.js", "connect.js"],
+      middleware: [
+        "auth.middleware.js",
+        "role.middleware.js",
+        "uploader.middleware.js",
+        "logger.middleware.js",
+      ],
+      controllers: ["user.controller.js"],
+      models: ["user.model.js"],
+      utils: [
+        "tokenGenerator.js",
+        "mailer.js",
+        "statusCodes.js",
+        "cookieOptions.js",
+        "tokenOptions.js",
+        "isEmpty.js",
+        "asyncHandler.js",
+        "apiErrorResponse.js",
+        "apiResponse.js",
+        "getOtp.js",
+        "required.js",
+        "hideEmail.js",
+      ],
+    };
+
+    // Create files inside their respective folders
+    for (const dir in files) {
+      for (const file of files[dir]) {
+        const handle = await fs.open(`src/${dir}/${file}`, "w");
+        await handle.close(); // important to close!
+      }
+    }
+
+    //filepaths
+    let filePaths = {
+      "src/server.js": `
+import connect from "./config/connect.js";
+import app from "./config/app.js";
+import dotenv from "dotenv";
+
+dotenv.config();
+
+let port = process.env.PORT || 4321;
+
+(async () => {
+  try {
+    app.listen(port, () => {
+      console.log(\`Server fired up on port : \${port}\`);
+    });
+    connect();
+  } catch (err) {
+    console.error(\`Error occured firing up server and database : \${err}\`);
+  }
+})();
+
+        `,
+      "src/config/app.js": `import express from "express";
+    import morgan from "morgan"
+    import cors from "cors"
+    import helmet from "helmet"
+    import cookie from "cookie-parser";
+    import logger from "../utils/logger.js";
+    import codes from "../utils/statusCodes.js";
+    import rateLimit from "express-rate-limit";
+    import path from "path";
+    import ApiErrorResponse from "../utils/apiErrorResponse.js";
+    import ApiResponse from "../utils/apiResponse.js";
+    import fileUpload from "express-fileupload";
+
+    let app=express();
+
+    let corsOptions={
+        origin:"frontendUrl",
+        credentials:true
+        };
+
+    let helmetOptions={
+        contentSecurityPolicy: false,
+        crossOriginResourcePolicy:
+            { policy: "cross-origin" },
+        }
+
+    let limter= rateLimit({
+        windowMs: 1 * 24 * 60 * 60 * 1000, // days 
+        max: 100,                 // limit each IP
+        message: "Too many requests, please try again later after one day.",
+        standardHeaders: true,    // return info in RateLimit-* headers
+        legacyHeaders: false,     // disable X-RateLimit-* headers
+        });
+
+    app.use(
+          fileUpload({
+            useTempFiles: true, // saves to /tmp by default
+            tempFileDir: "/tmp/",
+            limits: { fileSize: 1 * 1024 * 1024 }, // 1MB max (optional)
+            createParentPath: true, // create parent folders if not exist
+
+          })
+        );
+
+    app.use(express.json());
+    app.use(express.urlencoded({
+                extended:true
+                }));
+    app.use(morgan("dev"));
+    app.use(cors(corsOptions));
+    app.use(helmet(helmetOptions));
+    app.use(cookie());
+    app.use(limter);
+    app.use(express.static(path.join(__dirname, "/frontend")));
+    
+
+    app.get("/",(req,res)=>
+        {
+        res.status(codes.ok).json(new ApiResponse("Server is spinning..",codes.ok).res());
+    });
+    app.get("/*splat",(req,res)=>
+        {
+        res.status(codes.notFound).json(new ApiErrorResponse("Invalid route..",codes.notFound).res());
+    });
+    app.use((err,req,res,next)=>
+        {
+        res.status(codes.notFound).json(new ApiErrorResponse("Error occured..",codes.notFound,{},err).res())
+    });
+    
+    export default app;  
+    `,
+
+      "src/config/connect.js": `
+    import mongoose from "mongoose";
+
+    async function connect(){
+    try{
+        await mongoose.connect(process.env.MONGOURI);
+        console.log("Mongo fired up successfully");
+    }
+    catch(err){
+    console.error(\`MongoDB extinguished successfully:\${err}\`)
+    }}
+    
+    export default connect;
+    
+    `,
+      "src/middleware/auth.middleware.js": `import codes from "../utils/statusCodes.js";
+import asyncHandler from "../utils/asyncHandler.js";
+import ApiErrorResponse from "../utils/apiErrorResponse.js";
+import { verifyAccess, verifyRefresh } from "../utils/tokenGenerator.js";
+import User from "../models/user.model.js";
+
+let auth = (need = true) =>
+  asyncHandler(async (req, res, next) => {
+    const accessToken = req.header.authorization
+      ? req.header.authorization.split(" ")[1]
+      : req.cookies.accessToken;
+
+    const refreshToken = req.cookies.refreshToken;
+
+    req.user = null;
+
+    if (!accessToken || !refreshToken) {
+      return need
+        ? res
+            .status(codes.unauthorized)
+            .json(
+              new ApiErrorResponse(
+                "Auth tokens are not provided",
+                codes.unauthorized
+              ).res()
+            )
+        : next();
+    }
+
+    let decodedAccess, decodedRefresh;
+    if (accessToken) {
+      decodedAccess = verifyAccess(accessToken);
+    }
+    if (!decodedAccess) {
+      return need
+        ? res
+            .status(codes.unauthorized)
+            .json(
+              new ApiErrorResponse(
+                "Invalid access token",
+                codes.unauthorized
+              ).res()
+            )
+        : next();
+    }
+
+    if (refreshToken) {
+      decodedRefresh = verifyRefresh(refreshToken);
+    }
+    if (!decodedRefresh) {
+      return need
+        ? res
+            .status(codes.unauthorized)
+            .json(
+              new ApiErrorResponse(
+                "Invalid refresh token",
+                codes.unauthorized
+              ).res()
+            )
+        : next();
+    }
+
+    if (decodedAccess._id !== decodedRefresh._id) {
+      return need
+        ? res
+            .status(codes.unauthorized)
+            .json(
+              new ApiErrorResponse(
+                "Auth tokens mismatch.",
+                codes.unauthorized
+              ).res()
+            )
+        : next();
+    }
+
+    let user = await User.findById(decodedAccess._id);
+
+    let payload = { userName: user.userName, _id: user._id };
+
+    req.user = payload;
+    next();
+  });
+
+export default auth;
+`,
+      "src/middleware/role.middleware.js": ``,
+      "src/middleware/uploader.middleware.js": ``,
+      "src/middleware/logger.middleware.js": ``,
+      "src/controllers/user.controller.js": `
+
+ import User from "../models/user.model.js";
+
+import ApiErrorResponse from "../utils/apiErrorResponse.js";
+import ApiResponse from "../utils/apiResponse.js";
+import codes from "../utils/statusCodes.js";
+import hideEmail from "../utils/hideEmail.js";
+import isEmpty from "../utils/isEmpty.js";
+import { tokens } from "../utils/tokenGenerator.js";
+import cookieOptions from "../utils/cookieOptions.js";
+import asyncHandler from "../utils/asyncHandler.js";
+import mongoose from "mongoose";
+
+export const register = asyncHandler(async (req, res) => {
+  const { firstName, lastName, email, password, userName } = req.body;
+  if (isEmpty([email, password, userName])) {
+    return res
+      .status(codes.badRequest)
+      .json(
+        new ApiErrorResponse("All fields are required", codes.badRequest).res()
+      );
+  }
+
+  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+
+  if (!emailRegex.test(email)) {
+    return res
+      .status(codes.badRequest)
+      .json(
+        new ApiErrorResponse("Invalid email format.", codes.badRequest).res()
+      );
+  }
+
+  if (password.length < 8) {
+    return res
+      .status(codes.badRequest)
+      .json(
+        new ApiErrorResponse(
+          "Password must be atleast 8 characters long.",
+          codes.badRequest
+        ).res()
+      );
+  }
+
+  if (!/\d/.test(password)) {
+    return res
+      .status(codes.badRequest)
+      .json(
+        new ApiErrorResponse(
+          "Password must have a digit [1,2...].",
+          codes.badRequest
+        ).res()
+      );
+  }
+
+  if (!/[a-z]/.test(password)) {
+    return res
+      .status(codes.badRequest)
+      .json(
+        new ApiErrorResponse(
+          "Password must have a lowercase character [a-z].",
+          codes.badRequest
+        ).res()
+      );
+  }
+
+  if (!/[A-Z]/.test(password)) {
+    return res
+      .status(codes.badRequest)
+      .json(
+        new ApiErrorResponse(
+          "Password must have an uppercase character [A-Z].",
+          codes.badRequest
+        ).res()
+      );
+  }
+
+  if (/\s/.test(password)) {
+    return res
+      .status(codes.badRequest)
+      .json(
+        new ApiErrorResponse(
+          "Password must not have any spaces between.",
+          codes.badRequest
+        ).res()
+      );
+  }
+
+  if (!/\W/.test(password)) {
+    return res
+      .status(codes.badRequest)
+      .json(
+        new ApiErrorResponse(
+          "Password must have a symbol [!,@...].",
+          codes.badRequest
+        ).res()
+      );
+  }
+
+  const existingEmail = await User.findOne({ email });
+
+  if (existingEmail) {
+    return res
+      .status(codes.conflict)
+      .json(
+        new ApiErrorResponse("Email already exists.", codes.conflict).res()
+      );
+  }
+
+  const existingUsername = await User.findOne({ userName });
+
+  if (existingUsername) {
+    return res
+      .status(codes.conflict)
+      .json(
+        new ApiErrorResponse(
+          \`Account with username : \${userName} already exists\`,
+          codes.conflict
+        ).res()
+      );
+  }
+
+  await User.create({
+    firstName,
+    lastName,
+    email,
+    password,
+    userName,
+  });
+
+  return res
+    .status(codes.created)
+    .json(
+      new ApiResponse(
+        "Account created and registered successfully,please return to login",
+        codes.created,
+        { userName: userName, email: hideEmail(email) }
+      ).res()
+    );
+});
+
+/////////////////////////////////////////////////////////////////
+
+export const login = asyncHandler(async (req, res) => {
+  if (req.user) {
+    return res.status(codes.ok).json(
+      new ApiResponse("User already logged in.", codes.ok, {
+        user: { _id: req.user._id, userName: req.user.userName },
+      }).res()
+    );
+  }
+  const { emailUser, password } = req.body;
+  if (!emailUser && !password) {
+    return res
+      .status(codes.badRequest)
+      .json(
+        new ApiErrorResponse(
+          "Username or email required with password.",
+          codes.badRequest
+        ).res()
+      );
+  }
+
+  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}\$/;
+  const field = emailRegex.test(emailUser) ? "email" : "userName";
+
+  let user = await User.findOne({ \$or: [{ [field]: emailUser }] });
+  // let user = await User.findOne({ \$or: [{ [field]: emailUser }] }).select(" -refreshToken -otp ");
+  if (!user) {
+    return res
+      .status(codes.notFound)
+      .json(
+        new ApiErrorResponse(
+          "Account with credentials do not exist, try registering.",
+          codes.notFound
+        ).res()
+      );
+  }
+
+  if (!user.comparePassword(password)) {
+    return res
+      .status(codes.conflict)
+      .json(new ApiErrorResponse("Password mismatch.", codes.conflict).res());
+  }
+
+  let payload = { _id: user._id, userName: user.userName };
+  const { accessToken, refreshToken } = tokens(payload);
+  user.refreshToken = refreshToken;
+  await user.save();
+
+
+  res.cookie("accessToken", accessToken, cookieOptions("access"));
+  res.cookie("refreshToken", refreshToken, cookieOptions("refresh"));
+
+  return res.status(codes.ok).json(
+    new ApiResponse(
+      \`elcome back \${user.userName}. Logging you in.\`,
+      codes.ok,
+      {
+        user: {
+          _id: user._id,
+          userName: user.userName,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          email: user.email,
+          bio: user.bio,
+          occupation: user.occupation,
+          photoUrl: user.photoUrl,
+          instagram: user.instagram,
+          linkedin: user.linkedin,
+          github: user.github,
+          facebook: user.facebook,
+          createdAt: user.createdAt,
+          updatedAt: user.updatedAt,
+        },
+        accessToken: accessToken,
+      }
+    ).res()
+  );
+});
+
+
+////////////////////////////////////////////////////////////////////////////
+
+export const profile = asyncHandler(async (req, res) => {
+  let id = req.params.id;
+  let user = await User.findById(id);
+  if (!user) {
+    return res
+      .status(codes.notFound)
+      .json(new ApiErrorResponse("No user found.", codes.notFound).res());
+  }
+  return res.status(codes.ok).json(
+    new ApiResponse(\`User \${user.userName} found successfully.\`, codes.ok, {
+      user: {
+        _id: user._id,
+        userName: user.userName,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        bio: user.bio,
+        occupation: user.occupation,
+        photoUrl: user.photoUrl,
+        instagram: user.instagram,
+        linkedin: user.linkedin,
+        github: user.github,
+        facebook: user.facebook,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
+      },
+    }).res()
+  );
+});
+/////////////////////////////////////////////////////////////
+export const logout = asyncHandler(async (req, res) => {
+
+  for (let cookie in req.cookies) {
+    res.clearCookie(cookie, {
+      httpOnly: true,
+      path: "/",
+      secure: true,
+      sameSite: "None",
+    });
+  }
+
+  return res
+    .status(codes.ok)
+    .json(
+      new ApiResponse(
+        "You are successfully logged out.",
+        codes.ok
+      ).res()
+    );
+});
+
+///////////////////////////////////////////////
+
+
+
+export const updateProfile = asyncHandler(async (req, res) => {
+  if (!req.user) {
+    return res
+      .status(codes.unauthorized)
+      .json(
+        new ApiErrorResponse(
+          "User not authorized,please login before updating profile.",
+          codes.unauthorized
+        ).res()
+      );
+  }
+
+  let {
+    firstName,
+    email,
+    lastName,
+    occupation,
+    bio,
+    facebook,
+    linkedin,
+    github,
+    instagram,
+  } = req.body;
+
+  const user = await User.findById(req.user._id).select(
+    "-password -refreshToken -otp"
+  );
+
+  if (!req.user._id) {
+    return res
+      .status(codes.notFound)
+      .json(
+        new ApiErrorResponse("User Account not found.", codes.notFound).res()
+      );
+  }
+
+  // Update fields if changed
+  if (firstName && user.firstName !== firstName) {
+    user.firstName = firstName;
+  }
+  if (email && user.email !== email) {
+    user.email = email;
+  }
+  if (lastName !== undefined && user.lastName !== lastName) {
+    user.lastName = lastName;
+  }
+  if (occupation !== undefined && user.occupation !== occupation) {
+    user.occupation = occupation
+      ? occupation
+          .split(" ")
+          .map((e, i) => e[0].toUpperCase() + e.slice(1))
+          .join(" ")
+      : "";
+  }
+  if (bio !== undefined && user.bio !== bio) {
+    user.bio = bio;
+  }
+  if (instagram !== undefined && user.instagram !== instagram) {
+    user.instagram = instagram;
+  }
+  if (facebook !== undefined && user.facebook !== facebook) {
+    user.facebook = facebook;
+  }
+  if (linkedin !== undefined && user.linkedin !== linkedin) {
+    user.linkedin = linkedin;
+  }
+  if (github !== undefined && user.github !== github) {
+    user.github = github;
+  }
+
+  if (req.file?.url !== undefined && user.photoUrl !== req.file.url) {
+    user.photoUrl = req.file.url;
+  }
+
+  await user.save();
+
+  return res.status(codes.ok).json(
+    new ApiResponse("User profile successfully updated", codes.ok, {
+      user: user,
+    }).res()
+  );
+});
+
+///////////////////////////////////////////////////
+
+export const getAllUsers = asyncHandler(async (req, res) => {
+  const users = await User.find().select("-password -otp -refreshToken");
+  // exclude password field
+  return res.status(codes.ok).json(
+    new ApiResponse("Users successfully found", codes.ok, {
+      totalUsers: users?.length,
+      users: users ?? [],
+    }).res()
+  );
+});
+
+    
+    `,
+      "src/models/user.model.js": `
+    import mongoose from "mongoose";
+    import required from "../utils/required.js";
+    import bcrypt from "bcrypt";
+    const userSchema = new mongoose.Schema(
+      {
+        userName: {
+          type: String,
+          required: [true, required("username")],
+          trim: true,
+          lowercase: true,
+        },
+        firstName: {
+          type: String,
+          required: [true, required("firstname")],
+          trim: true,
+        },
+        lastName: {
+          type: String,
+          trim: true,
+        },
+        email: {
+          type: String,
+          required: [true, required("email")],
+          unique: true,
+          trim: true,
+          lowercase: true,
+        },
+        password: {
+          type: String,
+          required: [true, required("password")],
+          trim: true,
+          // select:false
+        },
+        bio: {
+          type: String,
+          default: "",
+          trim: true,
+        },
+        occupation: {
+          type: String,
+          trim: true,
+          default: "",
+        },
+        photoUrl: {
+          type: String,
+          default: "",
+          trim: true,
+     
+    
+        refreshToken: { type: String },
+        otp: {
+          code: { type: String },
+          verified: { type: Boolean },
+          expiry: { type: Date },
+        },
+        instagram: { type: String, default: "" },
+        linkedin: { type: String, default: "" },
+        github: { type: String, default: "" },
+        facebook: { type: String, default: "" },
+      },
+      { timestamps: true }
+    );
+    
+    userSchema.pre("save", async function (next) {
+      if (!this.isModified("password")) {
+        return next();
+      }
+      this.password = await bcrypt.hash(this.password, 10);
+      next();
+    });
+    
+    userSchema.pre("findByIdAndUpdate", async function (next) {
+      if (!this.isModified("password")) {
+        return next();
+      }
+      this.password = await bcrypt.hash(this.password, 10);
+      next();
+    });
+    
+    userSchema.methods.comparePassword = async function (password) {
+      return await bcrypt.compare(password, this.password);
+    };
+    
+    userSchema.pre("findOneAndUpdate", async function (next) {
+      const update = this.getUpdate();
+    
+      if (update.password) {
+        const hashed = await bcrypt.hash(update.password, 10);
+        this.setUpdate({ ...update, password: hashed });
+      }
+      next();
+    });
+    
+    let User = mongoose.model("User", userSchema);
+    export default User;
+    
+    
+    `,
+      "src/utils/tokenGenerator.js": `
+    import jwt from "jsonwebtoken";
+    import tokenOptions from "./tokenOptions.js";
+    function accessToken(payload) {
+      return jwt.sign(payload, process.env.SECRET_ACC, tokenOptions("access"));
+    }
+    function refreshToken(payload) {
+      return jwt.sign(payload, process.env.SECRET_REF, tokenOptions("refresh"));
+    }
+    
+    function tokens(payload) {
+      return {
+        refreshToken: refreshToken(payload),
+        accessToken: accessToken(payload),
+      };
+    }
+    
+    function verifyAccess(token) {
+      return jwt.verify(token, process.env.SECRET_ACC);
+    }
+    function verifyRefresh(token) {
+      return jwt.verify(token, process.env.SECRET_REF);
+    }
+    
+    export { accessToken, refreshToken, tokens, verifyAccess, verifyRefresh };
+    `,
+      "src/utils/statusCodes.js": `
+    let codes = {
+  continue: 100,
+  switchingProtocols: 101,
+  processing: 102,
+  ok: 200,
+  created: 201,
+  accepted: 202,
+  noContent: 204,
+  multipleChoices: 300,
+  movedPermanently: 301,
+  found: 302,
+  notModified: 304,
+  badRequest: 400,
+  unauthorized: 401,
+  paymentRequired: 402,
+  forbidden: 403,
+  notFound: 404,
+  methodNotAllowed: 405,
+  conflict: 409,
+  unprocessableEntity: 422,
+  internalServerError: 500,
+  notImplemented: 501,
+  badGateway: 502,
+  serviceUnavailable: 503,
+  gatewayTimeout: 504,
+};
+
+export default codes;
+`,
+      "src/utils/cookieOptions.js": `
+    export default function cookieOptions(type = "access") {
+    return {
+    httpOnly: true,
+    secure: true,
+    sameSite: "None", // ✅ Needed for cross-site cookies
+    path: "/", // ✅ Required to be available across the app
+    maxAge: 1000 * 60 * 60 * 24 * (type === "access" ? 1 : 7), // 1 or 7 days
+  };
+}
+`,
+      "src/utils/tokenOptions.js": `
+    export default function tokenOptions(type) {
+    return {
+    expiresIn: type.toLowerCase().trim() === "access" ? "1d" : "7d", // token valid for 1 day
+    issuer: "Nishan and Nishant",
+    subject: "Token option with expiry, issuer info, audience too", // subject of the token
+    audience: "Issuers\' backend users", 
+  };
+}
+`,
+      "src/utils/isEmpty.js": `
+    
+export default function isEmpty(arr) {
+  return arr.some((e) => !e?.trim());
+}
+`,
+      "src/utils/asyncHandler.js": `
+    import ApiErrorResponse from "./apiErrorResponse.js";
+import codes from "./statusCodes.js";
+
+let asyncHandler = (func) => async (req, res, next) => {
+  try {
+    return await func(req, res, next);
+  } catch (err) {
+    return res
+      .status(codes.badRequest)
+      .json(
+        new ApiErrorResponse(
+          \`Error occured : \${err.message || err}\`,
+          codes.badRequest,
+          {},
+          err
+        ).res()
+      );
+  }
+};
+
+export default asyncHandler;
+`,
+      "src/utils/apiErrorResponse.js": `
+    import codes from "../utils/statusCodes.js";
+
+export default class ApiErrorResponse extends Error {
+  constructor(
+    message = "Some error occured kindly report if this error persists.",
+    code = codes.badRequest,
+    payload = {},
+    err = {}
+  ) {
+    super(err.message || message);
+    this.code = code;
+    this.payload = payload;
+    this.success = false;
+    this.stack = err.stack || Error.captureStackTrace(this, this.constructor);
+  }
+  res(dev = true) { 
+    return { 
+      message: this.message,
+      code: this.code,
+      success: this.success,
+      payload: this.payload,
+      stack: dev ? this.stack : null,
+    };
+  }
+}
+`,
+      "src/utils/hideEmail.js": `
+      export default function hideEmail(email) {
+  let domain = email.split("@")[0].split("");
+  let serve = "@" + email.split("@")[1];
+  return (
+    domain
+      .map((letter, id) => {
+        return id === 0 || id === domain.length - 1 ? letter : "*";
+      })
+      .join("") + serve
+  );
+}
+`,
+
+      "src/utils/apiResponse.js": `
+    // apiResponse
+
+import codes from "../utils/statusCodes.js";
+
+export default class ApiResponse {
+  constructor(
+    message = "Api fetched successfully",
+    code = codes.ok,
+    payload = {}
+  ) {
+    this.message = message;
+    this.code = code;
+    this.payload = payload;
+    this.success = true;
+  }
+
+  res() { 
+    return { 
+      message: this.message,
+      code: this.code,
+      success: this.success,
+      payload: this.payload,
+    };
+  }
+}
+`,
+      "src/utils/OTP.js": `
+    
+    export let OTP = () => {
+  return Math.floor(Math.random() * (999999 - 100000 + 1)) + 100000;
+};
+
+export let expiry = (minutes = 5) => {
+  return Date.now() + 1000 * 60 * minutes;
+};
+`,
+      "src/utils/required.js": `export default function required(field) {
+  return \`Error occured : \${field} is missing, kindly provide necesssary field: \${field}\`;
+}
+`,
+    };
+
+    await Promise.all(
+      Object.keys(filePaths).map((path) => fs.writeFile(path, filePaths[path]))
+    );
+
+    console.log("Project structure created with boiler plate codes..");
+  } catch (error) {
+    console.log(`Error occured: ${error}`);
+  }
+}
+
+run();
