@@ -81,8 +81,8 @@ All responses follow a standard structure:
 ```json
 {
   "message": "Action completed",
-  "code": "",
-  "success": "",
+  "code": "xxx",
+  "success": true/false,
   "payload": {},
   "stack": {} //for error
 }
