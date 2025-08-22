@@ -238,7 +238,7 @@ let port = process.env.PORT || 4321;
     import cors from "cors"
     import helmet from "helmet"
     import cookie from "cookie-parser";
-    import logger from "../utils/logger.js";
+    import logger from "../utils/logger.js"; 
     import codes from "../utils/statusCodes.js";
     import rateLimit from "express-rate-limit";
     import path from "path";
@@ -1061,7 +1061,7 @@ export default class ApiResponse {
 `,
       "src/utils/OTP.js": `
     
-    export let OTP = () => {
+    export let otp = () => {
   return Math.floor(Math.random() * (999999 - 100000 + 1)) + 100000;
 };
 
@@ -1079,7 +1079,9 @@ export let expiry = (minutes = 5) => {
       Object.keys(filePaths).map((path) => fs.writeFile(path, filePaths[path]))
     );
 
-    console.log("Project structure created with boiler plate codes..");
+    console.log(
+      `Project structure created with boiler plate codes..\nPlease copy paste the dependencies installation code from \`dependencies.md\`. You and also delete the write.js later as per your convenience`
+    );
     // fs.unlink("write.js");
   } catch (error) {
     console.log(`Error occured: ${error}`);
