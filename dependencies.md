@@ -1,7 +1,7 @@
 # Copy paste below to install the used dependencies
 
 ```bash
-npm i express mongoose express-fileupload morgan helmet cookie-parser cors express-rate-limit dotenv jsonwebtoken
+npm i express mongoose express-fileupload morgan helmet cookie-parser cors express-rate-limit dotenv jsonwebtoken bcrypt
 ```
 
 ```bash
