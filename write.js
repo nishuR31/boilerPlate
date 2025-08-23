@@ -8,8 +8,11 @@ import { fileURLToPath } from "url";
 
 // let __filename = fileURLToPath(import.meta.url);
 // let __dirname = path.dirname(__filename);
-let backendDir = path.resolve(__dirname, "../backend");
-path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../backend");
+// let backendDir = path.resolve(__dirname, "../backend");
+let backendDir = path.resolve(
+  path.dirname(fileURLToPath(import.meta.url)),
+  "../backend"
+);
 let boilerPlateDir = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
   ".."
