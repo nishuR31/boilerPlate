@@ -1,9 +1,20 @@
 // #!/usr/bin/env node
 
+import { exec } from "child_process";
 import { promises as fs } from "fs";
+import { stderr, stdout } from "process";
+
+let sleep = (ms, msg = "Waiting...") =>
+  new Promise((res, rej) =>
+    setTimeout(() => {
+      console.log(msg);
+      res();
+    }, ms)
+  );
 
 async function run() {
   try {
+    let backend = "backend";
     // Folders to create
     const dirs = [
       "middleware",
@@ -16,7 +27,9 @@ async function run() {
 
     // Create dirs
     await Promise.all(
-      dirs.map((dir) => fs.mkdir(`src/${dir}`, { recursive: true }))
+      dirs.map((dir) =>
+        fs.mkdir(`../${backend}/src/${dir}`, { recursive: true })
+      )
     );
 
     // Files to create
@@ -49,7 +62,7 @@ async function run() {
     // Create files inside their respective folders
     for (const dir in files) {
       for (const file of files[dir]) {
-        const handle = await fs.open(`src/${dir}/${file}`, "w");
+        const handle = await fs.open(`../${backend}/src/${dir}/${file}`, "w");
         await handle.close(); // important to close!
       }
     }
@@ -605,7 +618,7 @@ export const login = asyncHandler(async (req, res) => {
 
   return res.status(codes.ok).json(
     new ApiResponse(
-      \`elcome back \${user.userName}. Logging you in.\`,
+      \`Welcome back \${user.userName}. Logging you in.\`,
       codes.ok,
       {
         user: {
@@ -1076,16 +1089,43 @@ export let expiry = (minutes = 5) => {
     };
 
     await Promise.all(
-      Object.keys(filePaths).map((path) => fs.writeFile(path, filePaths[path]))
+      Object.keys(filePaths).map((path) =>
+        fs.writeFile(`../${backend}/${path}`, filePaths[path])
+      )
     );
 
-    console.log(
-      `Project structure created with boiler plate codes..\nPlease copy paste the dependencies installation code from \`dependencies.md\`. You and also delete the write.js later as per your convenience`
+    sleep(
+      1000,
+      `Project structure created with boiler plate codes.. Installing dependencies..`
     );
-    console.log(`\nAfter installing dependencies you can run \`npm run dev\` or check and change the scripts as per your convenience`);
+
+    let dependencies = `npm i express mongoose express-fileupload morgan helmet cookie-parser cors express-rate-limit dotenv jsonwebtoken bcrypt
+&& npm i -D nodemon
+`;
+    exec(dependencies, (err, stdout, stderr) => {
+      err
+        ? err
+          ? console.log(err)
+          : console.log(stderr)
+        : console.log(stdout);
+    });
+
+sleep(1000,"Dependencies installed, cleaning the workplace..");
+
+exec("rm -rf boilerPlate",(err,stdout,stderr)=> => {
+      err
+        ? err
+          ? console.log(err)
+          : console.log(stderr)
+        : console.log(stdout);
+    })
+
     // fs.unlink("write.js");
+    // fs.rmdir("boilerPlate");
   } catch (error) {
-    console.log(`Error occured: ${error}`);
+    console.log(
+      `Error occured: ${(error, new Error.captureStackTrace(error))}`
+    );
   }
 }
 

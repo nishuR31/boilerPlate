@@ -4,7 +4,7 @@
 npm i express mongoose express-fileupload morgan helmet cookie-parser cors express-rate-limit dotenv jsonwebtoken bcrypt
 ```
 
-```bash
+```bash 
 npm i -D nodemon
 ```
 
