@@ -1137,7 +1137,7 @@ async function run() {
         cwd: parentDir,
       }).unref();
     });
-    console.log(parentDir, boilerPlateDir, backendDir);
+    // console.log(parentDir, boilerPlateDir, backendDir);
 
     await sleep(1000, "\nReady to work..\n");
   } catch (error) {
