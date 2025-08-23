@@ -6,10 +6,10 @@ import { promisify } from "util";
 import path from "path";
 import { fileURLToPath } from "url";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const backend = path.resolve(__dirname, "../backend");
-const boilerPlate = path.dirname(fileURLToPath(import.meta.url));
+let __filename = fileURLToPath(import.meta.url);
+let __dirname = path.dirname(__filename);
+let backendDir = path.resolve(__dirname, "../backend");
+let boilerPlateDir = path.dirname(fileURLToPath(import.meta.url));
 let execute = promisify(exec);
 
 let sleep = (ms, msg = "Waiting...") =>
@@ -24,7 +24,7 @@ async function run() {
   try {
     let backend = "backend";
     // Folders to create
-    const dirs = [
+    let dirs = [
       "middleware",
       "models",
       "controllers",
@@ -41,7 +41,7 @@ async function run() {
     );
 
     // Files to create
-    const files = {
+    let files = {
       config: ["app.js", "connect.js"],
       middleware: [
         "auth.middleware.js",
@@ -68,9 +68,9 @@ async function run() {
     };
 
     // Create files inside their respective folders
-    for (const dir in files) {
-      for (const file of files[dir]) {
-        const handle = await fs.open(`../${backend}/src/${dir}/${file}`, "w");
+    for (let dir in files) {
+      for (let file of files[dir]) {
+        let handle = await fs.open(`../${backend}/src/${dir}/${file}`, "w");
         await handle.close(); // important to close!
       }
     }
@@ -348,11 +348,11 @@ import User from "../models/user.model.js";
 
 let auth = (need = true) =>
   asyncHandler(async (req, res, next) => {
-    const accessToken = req.header.authorization
+    let accessToken = req.header.authorization
       ? req.header.authorization.split(" ")[1]
       : req.cookies.accessToken;
 
-    const refreshToken = req.cookies.refreshToken;
+    let refreshToken = req.cookies.refreshToken;
 
     req.user = null;
 
@@ -442,8 +442,8 @@ import cookieOptions from "../utils/cookieOptions.js";
 import asyncHandler from "../utils/asyncHandler.js";
 import mongoose from "mongoose";
 
-export const register = asyncHandler(async (req, res) => {
-  const { firstName, lastName, email, password, userName } = req.body;
+export let register = asyncHandler(async (req, res) => {
+  let { firstName, lastName, email, password, userName } = req.body;
   if (isEmpty([email, password, userName])) {
     return res
       .status(codes.badRequest)
@@ -452,7 +452,7 @@ export const register = asyncHandler(async (req, res) => {
       );
   }
 
-  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+  let emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
   if (!emailRegex.test(email)) {
     return res
@@ -528,7 +528,7 @@ export const register = asyncHandler(async (req, res) => {
       );
   }
 
-  const existingEmail = await User.findOne({ email });
+  let existingEmail = await User.findOne({ email });
 
   if (existingEmail) {
     return res
@@ -538,7 +538,7 @@ export const register = asyncHandler(async (req, res) => {
       );
   }
 
-  const existingUsername = await User.findOne({ userName });
+  let existingUsername = await User.findOne({ userName });
 
   if (existingUsername) {
     return res
@@ -572,7 +572,7 @@ export const register = asyncHandler(async (req, res) => {
 
 /////////////////////////////////////////////////////////////////
 
-export const login = asyncHandler(async (req, res) => {
+export let login = asyncHandler(async (req, res) => {
   if (req.user) {
     return res.status(codes.ok).json(
       new ApiResponse("User already logged in.", codes.ok, {
@@ -580,7 +580,7 @@ export const login = asyncHandler(async (req, res) => {
       }).res()
     );
   }
-  const { emailUser, password } = req.body;
+  let { emailUser, password } = req.body;
   if (!emailUser && !password) {
     return res
       .status(codes.badRequest)
@@ -592,8 +592,8 @@ export const login = asyncHandler(async (req, res) => {
       );
   }
 
-  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}\$/;
-  const field = emailRegex.test(emailUser) ? "email" : "userName";
+  let emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}\$/;
+  let field = emailRegex.test(emailUser) ? "email" : "userName";
 
   let user = await User.findOne({ \$or: [{ [field]: emailUser }] });
   // let user = await User.findOne({ \$or: [{ [field]: emailUser }] }).select(" -refreshToken -otp ");
@@ -615,7 +615,7 @@ export const login = asyncHandler(async (req, res) => {
   }
 
   let payload = { _id: user._id, userName: user.userName };
-  const { accessToken, refreshToken } = tokens(payload);
+  let { accessToken, refreshToken } = tokens(payload);
   user.refreshToken = refreshToken;
   await user.save();
 
@@ -651,7 +651,7 @@ export const login = asyncHandler(async (req, res) => {
 
 ////////////////////////////////////////////////////////////////////////////
 
-export const profile = asyncHandler(async (req, res) => {
+export let profile = asyncHandler(async (req, res) => {
   let id = req.params.id;
   let user = await User.findById(id);
   if (!user) {
@@ -681,7 +681,7 @@ export const profile = asyncHandler(async (req, res) => {
   );
 });
 /////////////////////////////////////////////////////////////
-export const logout = asyncHandler(async (req, res) => {
+export let logout = asyncHandler(async (req, res) => {
 
   for (let cookie in req.cookies) {
     res.clearCookie(cookie, {
@@ -704,7 +704,7 @@ export const logout = asyncHandler(async (req, res) => {
 
 ///////////////////////////////////////////////
 
-export const updateProfile = asyncHandler(async (req, res) => {
+export let updateProfile = asyncHandler(async (req, res) => {
   if (!req.user) {
     return res
       .status(codes.unauthorized)
@@ -728,7 +728,7 @@ export const updateProfile = asyncHandler(async (req, res) => {
     instagram,
   } = req.body;
 
-  const user = await User.findById(req.user._id).select(
+  let user = await User.findById(req.user._id).select(
     "-password -refreshToken -otp"
   );
 
@@ -789,8 +789,8 @@ export const updateProfile = asyncHandler(async (req, res) => {
 
 ///////////////////////////////////////////////////
 
-export const getAllUsers = asyncHandler(async (req, res) => {
-  const users = await User.find().select("-password -otp -refreshToken");
+export let getAllUsers = asyncHandler(async (req, res) => {
+  let users = await User.find().select("-password -otp -refreshToken");
   // exclude password field
   return res.status(codes.ok).json(
     new ApiResponse("Users successfully found", codes.ok, {
@@ -805,7 +805,7 @@ export const getAllUsers = asyncHandler(async (req, res) => {
     import mongoose from "mongoose";
     import required from "../utils/required.js";
     import bcrypt from "bcrypt";
-    const userSchema = new mongoose.Schema(
+    let userSchema = new mongoose.Schema(
       {
         userName: {
           type: String,
@@ -885,10 +885,10 @@ export const getAllUsers = asyncHandler(async (req, res) => {
     };
 
     userSchema.pre("findOneAndUpdate", async function (next) {
-      const update = this.getUpdate();
+      let update = this.getUpdate();
 
       if (update.password) {
-        const hashed = await bcrypt.hash(update.password, 10);
+        let hashed = await bcrypt.hash(update.password, 10);
         this.setUpdate({ ...update, password: hashed });
       }
       next();
@@ -1008,7 +1008,7 @@ export default asyncHandler;
     import codes from "../utils/statusCodes.js";
 
 export default class ApiErrorResponse extends Error {
-  constructor(
+  letructor(
     message = "Some error occured kindly report if this error persists.",
     code = codes.badRequest,
     payload = {},
@@ -1018,7 +1018,7 @@ export default class ApiErrorResponse extends Error {
     this.code = code;
     this.payload = payload;
     this.success = false;
-    this.stack = err.stack || Error.captureStackTrace(this, this.constructor);
+    this.stack = err.stack || Error.captureStackTrace(this, this.letructor);
   }
   res(dev = true) {
     return {
@@ -1051,7 +1051,7 @@ export default class ApiErrorResponse extends Error {
 import codes from "../utils/statusCodes.js";
 
 export default class ApiResponse {
-  constructor(
+  letructor(
     message = "Api fetched successfully",
     code = codes.ok,
     payload = {}
@@ -1103,7 +1103,7 @@ export let expiry = (minutes = 5) => {
       // cwd: path.resolve(
       //   path.dirname(fileURLToPath(import.meta.url)),
       //   "../backend"
-      cwd: backend,
+      cwd: backendDir,
     });
 
     await sleep(
@@ -1118,7 +1118,7 @@ export let expiry = (minutes = 5) => {
         process.execPath, // node binary
         [
           "-e",
-          `require('fs').rmSync('${boilerPlate.replace(
+          `require('fs').rmSync('${boilerPlateDir.replace(
             /\\/g,
             "\\\\"
           )}', { recursive: true, force: true })`,
