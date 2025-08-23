@@ -571,14 +571,30 @@ async function run() {
           );
       }
 
-      await User.create({
-        firstName,
-        lastName,
-        email,
-        password,
-        userName,
-      });
+      // await User.create({
+      //   firstName,
+      //   lastName,
+      //   email,
+      //   password,
+      //   userName,
+      // });
+  let user=await User.create(req.body);
+  if(!user){
+  return res
+    .status(codes.internalServerError)
+    .json(new ApiErrorResponse("Registration failed, please retry.",codes.internalServerError)
+    .res())}
 
+  return res
+    .status(codes.created)
+    .json(
+      new ApiResponse(
+        "Account created and registered successfully,please return to login",
+        codes.created,
+        { userName: user.userName, email: hideEmail(user.email) ,photoUrl:user.photoUrl}
+      ).res()
+    );
+});
       return res
         .status(codes.created)
         .json(
