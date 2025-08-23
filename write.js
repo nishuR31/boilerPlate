@@ -2,7 +2,14 @@
 
 import { exec } from "child_process";
 import { promises as fs } from "fs";
-import { stderr, stdout } from "process";
+import { promisify } from "util";
+import path from "path";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const backendDir = path.resolve(__dirname, "../backend");
+let execute = promisify(exec);
 
 let sleep = (ms, msg = "Waiting...") =>
   new Promise((res, rej) =>
@@ -251,7 +258,7 @@ let port = process.env.PORT || 4321;
     import cors from "cors"
     import helmet from "helmet"
     import cookie from "cookie-parser";
-    import logger from "../utils/logger.js"; 
+    import logger from "../utils/logger.js";
     import codes from "../utils/statusCodes.js";
     import rateLimit from "express-rate-limit";
     import path from "path";
@@ -273,7 +280,7 @@ let port = process.env.PORT || 4321;
         }
 
     let limter= rateLimit({
-        windowMs: 1 * 24 * 60 * 60 * 1000, // days 
+        windowMs: 1 * 24 * 60 * 60 * 1000, // days
         max: 100,                 // limit each IP
         message: "Too many requests, please try again later after one day.",
         standardHeaders: true,    // return info in RateLimit-* headers
@@ -300,7 +307,6 @@ let port = process.env.PORT || 4321;
     app.use(cookie());
     app.use(limter);
     app.use(express.static(path.join(__dirname, "/frontend")));
-    
 
     app.get("/",(req,res)=>
         {
@@ -314,8 +320,8 @@ let port = process.env.PORT || 4321;
         {
         res.status(codes.notFound).json(new ApiErrorResponse("Error occured..",codes.notFound,{},err).res())
     });
-    
-    export default app;  
+
+    export default app;
     `,
 
       "src/config/connect.js": `
@@ -329,9 +335,9 @@ let port = process.env.PORT || 4321;
     catch(err){
     console.error(\`MongoDB extinguished successfully:\${err}\`)
     }}
-    
+
     export default connect;
-    
+
     `,
       "src/middleware/auth.middleware.js": `import codes from "../utils/statusCodes.js";
 import asyncHandler from "../utils/asyncHandler.js";
@@ -612,7 +618,6 @@ export const login = asyncHandler(async (req, res) => {
   user.refreshToken = refreshToken;
   await user.save();
 
-
   res.cookie("accessToken", accessToken, cookieOptions("access"));
   res.cookie("refreshToken", refreshToken, cookieOptions("refresh"));
 
@@ -642,7 +647,6 @@ export const login = asyncHandler(async (req, res) => {
     ).res()
   );
 });
-
 
 ////////////////////////////////////////////////////////////////////////////
 
@@ -698,8 +702,6 @@ export const logout = asyncHandler(async (req, res) => {
 });
 
 ///////////////////////////////////////////////
-
-
 
 export const updateProfile = asyncHandler(async (req, res) => {
   if (!req.user) {
@@ -797,7 +799,6 @@ export const getAllUsers = asyncHandler(async (req, res) => {
   );
 });
 
-    
     `,
       "src/models/user.model.js": `
     import mongoose from "mongoose";
@@ -847,8 +848,7 @@ export const getAllUsers = asyncHandler(async (req, res) => {
           type: String,
           default: "",
           trim: true,
-     
-    
+
         refreshToken: { type: String },
         otp: {
           code: { type: String },
@@ -862,7 +862,7 @@ export const getAllUsers = asyncHandler(async (req, res) => {
       },
       { timestamps: true }
     );
-    
+
     userSchema.pre("save", async function (next) {
       if (!this.isModified("password")) {
         return next();
@@ -870,7 +870,7 @@ export const getAllUsers = asyncHandler(async (req, res) => {
       this.password = await bcrypt.hash(this.password, 10);
       next();
     });
-    
+
     userSchema.pre("findByIdAndUpdate", async function (next) {
       if (!this.isModified("password")) {
         return next();
@@ -878,25 +878,24 @@ export const getAllUsers = asyncHandler(async (req, res) => {
       this.password = await bcrypt.hash(this.password, 10);
       next();
     });
-    
+
     userSchema.methods.comparePassword = async function (password) {
       return await bcrypt.compare(password, this.password);
     };
-    
+
     userSchema.pre("findOneAndUpdate", async function (next) {
       const update = this.getUpdate();
-    
+
       if (update.password) {
         const hashed = await bcrypt.hash(update.password, 10);
         this.setUpdate({ ...update, password: hashed });
       }
       next();
     });
-    
+
     let User = mongoose.model("User", userSchema);
     export default User;
-    
-    
+
     `,
       "src/utils/tokenGenerator.js": `
     import jwt from "jsonwebtoken";
@@ -907,21 +906,21 @@ export const getAllUsers = asyncHandler(async (req, res) => {
     function refreshToken(payload) {
       return jwt.sign(payload, process.env.SECRET_REF, tokenOptions("refresh"));
     }
-    
+
     function tokens(payload) {
       return {
         refreshToken: refreshToken(payload),
         accessToken: accessToken(payload),
       };
     }
-    
+
     function verifyAccess(token) {
       return jwt.verify(token, process.env.SECRET_ACC);
     }
     function verifyRefresh(token) {
       return jwt.verify(token, process.env.SECRET_REF);
     }
-    
+
     export { accessToken, refreshToken, tokens, verifyAccess, verifyRefresh };
     `,
       "src/utils/statusCodes.js": `
@@ -971,12 +970,12 @@ export default codes;
     expiresIn: type.toLowerCase().trim() === "access" ? "1d" : "7d", // token valid for 1 day
     issuer: "Nishan and Nishant",
     subject: "Token option with expiry, issuer info, audience too", // subject of the token
-    audience: "Issuers\' backend users", 
+    audience: "Issuers\' backend users",
   };
 }
 `,
       "src/utils/isEmpty.js": `
-    
+
 export default function isEmpty(arr) {
   return arr.some((e) => !e?.trim());
 }
@@ -1020,8 +1019,8 @@ export default class ApiErrorResponse extends Error {
     this.success = false;
     this.stack = err.stack || Error.captureStackTrace(this, this.constructor);
   }
-  res(dev = true) { 
-    return { 
+  res(dev = true) {
+    return {
       message: this.message,
       code: this.code,
       success: this.success,
@@ -1062,8 +1061,8 @@ export default class ApiResponse {
     this.success = true;
   }
 
-  res() { 
-    return { 
+  res() {
+    return {
       message: this.message,
       code: this.code,
       success: this.success,
@@ -1073,7 +1072,7 @@ export default class ApiResponse {
 }
 `,
       "src/utils/OTP.js": `
-    
+
     export let otp = () => {
   return Math.floor(Math.random() * (999999 - 100000 + 1)) + 100000;
 };
@@ -1094,38 +1093,37 @@ export let expiry = (minutes = 5) => {
       )
     );
 
-    sleep(
-      1000,
-      `Project structure created with boiler plate codes.. Installing dependencies..`
-    );
-
     let dependencies = `npm i express mongoose express-fileupload morgan helmet cookie-parser cors express-rate-limit dotenv jsonwebtoken bcrypt
 && npm i -D nodemon
 `;
-    exec(dependencies, (err, stdout, stderr) => {
-      err
-        ? err
-          ? console.log(err)
-          : console.log(stderr)
-        : console.log(stdout);
+
+    await sleep(1000, "\nChanging directory and install dependencies\n");
+    await execute(dependencies, {
+      cwd: path.resolve(
+        path.dirname(fileURLToPath(import.meta.url)),
+        "../backend"
+      ),
     });
 
-sleep(1000,"Dependencies installed, cleaning the workplace..");
+    await sleep(
+      1000,
+      "\nChanged directory to backend and Installed dependencies\n"
+    );
+    await sleep(1000, "\nCleaning work place\n");
 
-exec("rm -rf boilerPlate",(err,stdout,stderr)=> {
-      err
-        ? err
-          ? console.log(err)
-          : console.log(stderr)
-        : console.log(stdout);
-    })
+    // let { stderr1, stdout2 } = await execute("rm -rf boilerPlate");
+    // stderr1 ? console.log(stderr1) : console.log(stdout2);
+    await sleep(1000, "\nReady to work..\n");
+    await execute("clear");
 
     // fs.unlink("write.js");
-    // fs.rmdir("boilerPlate");
+
+    fs.rm(path.dirname(fileURLToPath(import.meta.url)), {
+      recursive: true,
+      force: true,
+    });
   } catch (error) {
-    console.log(
-      `Error occured: ${(error, new Error.captureStackTrace(error))}`
-    );
+    console.log(`Error occured: ${error}`);
   }
 }
 

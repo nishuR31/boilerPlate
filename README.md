@@ -1,6 +1,6 @@
 # Express Backend Boilerplate
 
-A clean and production-ready **Express.js boilerplate** with built-in middlewares, modular folder structure, and utilities for rapid backend development.
+A clean, automatic and production-ready **Express.js boilerplate** with built-in middlewares, modular folder structure, and utilities for rapid backend development.
 
 ## Features
 
@@ -12,7 +12,9 @@ A clean and production-ready **Express.js boilerplate** with built-in middleware
 - Security middlewares: `helmet`, `cors`, `cookie-parser`
 - Pre-configured error handling & API response format
 - Environment variable management with `.env`
-- Secure puhs handled by `.gitignore`
+- Secure push handled by `.gitignore`
+- Auto install necessary dependensies
+- Auto cleanup the boilerPlate directory for clean working directory
 
 ## Boiler Plate Project Structure
 
@@ -26,12 +28,11 @@ boilerplate/
 │   ├── utils/          # Helpers (ApiResponse, logger, etc.)
 │   ├── app.js          # Express app setup
 │   └── server.js       # Server entry point
-├── .env.example        # Example env file
 ├── .env                # Example env file
-├── write.js
 ├── .gitignore
 ├── package.json
-└── README.md
+├── package-lock.json
+├── node_modules
 ```
 
 ## Installation
@@ -45,19 +46,12 @@ cd boilerplate
 ## Usage
 
 ```bash
-npm link
-boilerplate my-project
-cd my-project
-npm install
-
-or
-
 npm run dev
 ```
 
 ## Environment Variables
 
-Create a general `.env` file in the root directory:
+File a general values for `.env` in the root directory:
 
 ```env
 PORT=port number
