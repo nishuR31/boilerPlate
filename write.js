@@ -868,7 +868,7 @@ async function run() {
             photoUrl: {
               type: String,
               default: "",
-              trim: true,
+              trim: true,},
 
             refreshToken: { type: String },
             otp: {
