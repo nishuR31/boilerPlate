@@ -1082,6 +1082,7 @@ export let expiry = (minutes = 5) => {
     console.log(
       `Project structure created with boiler plate codes..\nPlease copy paste the dependencies installation code from \`dependencies.md\`. You and also delete the write.js later as per your convenience`
     );
+    console.log(`\nAfter installing dependencies you can run \`npm run dev\` or check and change the scripts as per your convenience`);
     // fs.unlink("write.js");
   } catch (error) {
     console.log(`Error occured: ${error}`);
