@@ -1121,9 +1121,9 @@ export let expiry = (minutes = 5) => {
 
     // fs.unlink("write.js");
 
-    process.on("exit", async () => {
+    process.on("exit", () => {
       try {
-        await execute(`cd ${parentDir}`);
+        exec(`cd ${parentDir}`);
         fs.rmSync(backendDir, { recursive: true, force: true });
         console.log(`Deleted directory: ${backendDir}`);
       } catch (err) {
