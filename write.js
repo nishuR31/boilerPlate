@@ -13,10 +13,11 @@ let backendDir = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
   "../backend"
 );
-let boilerPlateDir = path.resolve(
+let parentDir = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
   ".."
 );
+let boilerPlateDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)));
 let execute = promisify(exec);
 
 let sleep = (ms, msg = "Waiting...") =>
@@ -29,7 +30,6 @@ let sleep = (ms, msg = "Waiting...") =>
 
 async function run() {
   try {
-    let backend = "backend";
     // Folders to create
     let dirs = [
       "middleware",
@@ -43,7 +43,7 @@ async function run() {
     // Create dirs
     await Promise.all(
       dirs.map((dir) =>
-        fs.mkdir(`../${backend}/src/${dir}`, { recursive: true })
+        fs.mkdir(`${backendDir}/src/${dir}`, { recursive: true })
       )
     );
 
@@ -77,14 +77,14 @@ async function run() {
     // Create files inside their respective folders
     for (let dir in files) {
       for (let file of files[dir]) {
-        let handle = await fs.open(`../${backend}/src/${dir}/${file}`, "w");
+        let handle = await fs.open(`${backendDir}/src/${dir}/${file}`, "w");
         await handle.close(); // important to close!
       }
     }
     let rootFiles = ["server.js", ".env", ".gitignore"];
 
     let handles = await Promise.all(
-      rootFiles.map((file) => fs.open(file, "w")) // opens all files
+      rootFiles.map((file) => fs.open(`${backendDir}/${file}`, "w")) // opens all files
     );
     // close each handle properly
     await Promise.all(handles.map((h) => h.close()));
@@ -1097,7 +1097,7 @@ export let expiry = (minutes = 5) => {
 
     await Promise.all(
       Object.keys(filePaths).map((path) =>
-        fs.writeFile(`../${backend}/${path}`, filePaths[path])
+        fs.writeFile(`${backendDir}/${path}`, filePaths[path])
       )
     );
 
@@ -1120,19 +1120,17 @@ export let expiry = (minutes = 5) => {
     await sleep(1000, "\nCleaning work place\n");
 
     // fs.unlink("write.js");
-    process.on("exit", () => {
-      spawn(
-        process.execPath, // node binary
-        [
-          "-e",
-          `require('fs').rmSync('${boilerPlateDir.replace(
-            /\\/g,
-            "\\\\"
-          )}', { recursive: true, force: true })`,
-        ],
-        { detached: true, stdio: "ignore" }
-      ).unref();
+
+    process.on("exit", async () => {
+      try {
+        await execute(`cd ${parentDir}`);
+        fs.rmSync(backendDir, { recursive: true, force: true });
+        console.log(`Deleted directory: ${backendDir}`);
+      } catch (err) {
+        console.error("Failed to delete directory:", err);
+      }
     });
+    console.log(parentDir, boilerPlateDir, backendDir);
 
     await sleep(1000, "\nReady to work..\n");
   } catch (error) {
