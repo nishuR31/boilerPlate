@@ -1112,7 +1112,7 @@ export let expiry = (minutes = 5) => {
 
 sleep(1000,"Dependencies installed, cleaning the workplace..");
 
-exec("rm -rf boilerPlate",(err,stdout,stderr)=> => {
+exec("rm -rf boilerPlate",(err,stdout,stderr)=> {
       err
         ? err
           ? console.log(err)
