@@ -841,6 +841,7 @@ async function run() {
             lastName: {
               type: String,
               trim: true,
+              default: "",
             },
             email: {
               type: String,
