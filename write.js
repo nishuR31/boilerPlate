@@ -6,10 +6,14 @@ import { promisify } from "util";
 import path from "path";
 import { fileURLToPath } from "url";
 
-let __filename = fileURLToPath(import.meta.url);
-let __dirname = path.dirname(__filename);
+// let __filename = fileURLToPath(import.meta.url);
+// let __dirname = path.dirname(__filename);
 let backendDir = path.resolve(__dirname, "../backend");
-let boilerPlateDir = path.dirname(fileURLToPath(import.meta.url));
+path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../backend");
+let boilerPlateDir = path.resolve(
+  path.dirname(fileURLToPath(import.meta.url)),
+  ".."
+);
 let execute = promisify(exec);
 
 let sleep = (ms, msg = "Waiting...") =>
