@@ -1,6 +1,6 @@
 // #!/usr/bin/env node
 
-import { exec } from "child_process";
+import { exec, spawn } from "child_process";
 import { promises as fs } from "fs";
 import { promisify } from "util";
 import path from "path";
@@ -8,7 +8,8 @@ import { fileURLToPath } from "url";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const backendDir = path.resolve(__dirname, "../backend");
+const backend = path.resolve(__dirname, "../backend");
+const boilerPlate = path.dirname(fileURLToPath(import.meta.url));
 let execute = promisify(exec);
 
 let sleep = (ms, msg = "Waiting...") =>
@@ -1099,10 +1100,10 @@ export let expiry = (minutes = 5) => {
 
     await sleep(1000, "\nChanging directory and install dependencies\n");
     await execute(dependencies, {
-      cwd: path.resolve(
-        path.dirname(fileURLToPath(import.meta.url)),
-        "../backend"
-      ),
+      // cwd: path.resolve(
+      //   path.dirname(fileURLToPath(import.meta.url)),
+      //   "../backend"
+      cwd: backend,
     });
 
     await sleep(
@@ -1111,17 +1112,22 @@ export let expiry = (minutes = 5) => {
     );
     await sleep(1000, "\nCleaning work place\n");
 
-    // let { stderr1, stdout2 } = await execute("rm -rf boilerPlate");
-    // stderr1 ? console.log(stderr1) : console.log(stdout2);
-    await sleep(1000, "\nReady to work..\n");
-    await execute("clear");
-
     // fs.unlink("write.js");
-
-    fs.rm(path.dirname(fileURLToPath(import.meta.url)), {
-      recursive: true,
-      force: true,
+    process.on("exit", () => {
+      spawn(
+        process.execPath, // node binary
+        [
+          "-e",
+          `require('fs').rmSync('${boilerPlate.replace(
+            /\\/g,
+            "\\\\"
+          )}', { recursive: true, force: true })`,
+        ],
+        { detached: true, stdio: "ignore" }
+      ).unref();
     });
+
+    await sleep(1000, "\nReady to work..\n");
   } catch (error) {
     console.log(`Error occured: ${error}`);
   }
