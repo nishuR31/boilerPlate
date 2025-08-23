@@ -435,7 +435,19 @@ async function run() {
     `,
       "src/middleware/role.middleware.js": ``,
       "src/middleware/uploader.middleware.js": ``,
-      "src/middleware/logger.middleware.js": ``,
+      "src/middleware/logger.middleware.js": `
+      export default function logger(req, res, next) {
+    console.log({
+    method: req.method,
+    path: \`\${req.host}\${req.originalUrl}\`,
+    statusCode: res.statusCode,
+    time: new Date().toLocaleString(),
+    parameters: req.params,
+    query: req.query,
+  });
+
+  next();
+}`,
       "src/controllers/user.controller.js": `
 
      import User from "../models/user.model.js";
