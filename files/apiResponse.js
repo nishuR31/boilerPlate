@@ -4,7 +4,7 @@ let apiResponse = `
     import codes from "../utils/statusCodes.js";
 
     export default class ApiResponse {
-      letructor(
+      let constructor(
         message = "Api fetched successfully",
         code = codes.ok,
         payload = {}

@@ -1,7 +1,7 @@
 let apiErrorResponse = `
-        import codes from "../utils/statusCodes.js";
+import codes from "../utils/statusCodes.js";
 
-    export default class ApiErrorResponse extends Error {
+export default class ApiErrorResponse extends Error {
       let constructor(
         message = "Some error occured kindly report if this error persists.",
         code = codes.badRequest,

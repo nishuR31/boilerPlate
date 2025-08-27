@@ -1,30 +1,31 @@
-let app = `import express from "express";
-        import morgan from "morgan"
-        import cors from "cors"
-        import helmet from "helmet"
-        import cookie from "cookie-parser";
-        import logger from "../utils/logger.js";
-        import codes from "../utils/statusCodes.js";
-        import rateLimit from "express-rate-limit";
-        import path from "path";
-        import ApiErrorResponse from "../utils/apiErrorResponse.js";
-        import ApiResponse from "../utils/apiResponse.js";
-        import fileUpload from "express-fileupload";
+let app = `
+import express from "express";
+import morgan from "morgan"
+import cors from "cors"
+import helmet from "helmet"
+import cookie from "cookie-parser";
+import logger from "../utils/logger.js";
+import codes from "../utils/statusCodes.js";
+import rateLimit from "express-rate-limit";
+import path from "path";
+import ApiErrorResponse from "../utils/apiErrorResponse.js";
+import ApiResponse from "../utils/apiResponse.js";
+import fileUpload from "express-fileupload";
 
-        let app=express();
+let app=express();
 
-        let corsOptions={
+let corsOptions={
             origin:"frontendUrl",
             credentials:true
             };
 
-        let helmetOptions={
+let helmetOptions={
             contentSecurityPolicy: false,
             crossOriginResourcePolicy:
                 { policy: "cross-origin" },
             }
 
-        let limter= rateLimit({
+let limter= rateLimit({
             windowMs: 1 * 24 * 60 * 60 * 1000, // days
             max: 100,                 // limit each IP
             message: "Too many requests, please try again later after one day.",
@@ -32,7 +33,7 @@ let app = `import express from "express";
             legacyHeaders: false,     // disable X-RateLimit-* headers
             });
 
-        app.use(
+app.use(
               fileUpload({
                 useTempFiles: true, // saves to /tmp by default
                 tempFileDir: "/tmp/",
@@ -42,30 +43,30 @@ let app = `import express from "express";
               })
             );
 
-        app.use(express.json());
-        app.use(express.urlencoded({
+app.use(express.json());
+app.use(express.urlencoded({
                     extended:true
                     }));
-        app.use(morgan("dev"));
-        app.use(cors(corsOptions));
-        app.use(helmet(helmetOptions));
-        app.use(cookie());
-        app.use(limter);
-        app.use(express.static(path.join(__dirname, "/frontend")));
+app.use(morgan("dev"));
+app.use(cors(corsOptions));
+app.use(helmet(helmetOptions));
+app.use(cookie());
+app.use(limter);
+app.use(express.static(path.join(__dirname, "/frontend")));
 
-        app.get("/",(req,res)=>
+app.get("/",(req,res)=>
             {
             res.status(codes.ok).json(new ApiResponse("Server is spinning..",codes.ok).res());
         });
-        app.get("/*splat",(req,res)=>
+app.get("/*splat",(req,res)=>
             {
             res.status(codes.notFound).json(new ApiErrorResponse("Invalid route..",codes.notFound).res());
         });
-        app.use((err,req,res,next)=>
+app.use((err,req,res,next)=>
             {
             res.status(codes.notFound).json(new ApiErrorResponse("Error occured..",codes.notFound,{},err).res())
         });
 
-        export default app;
+export default app;
         `;
 export default app;

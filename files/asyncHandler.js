@@ -1,6 +1,6 @@
 let asyncHandler = `
-        import ApiErrorResponse from "./apiErrorResponse.js";
-    import codes from "./statusCodes.js";
+import ApiErrorResponse from "./apiErrorResponse.js";
+import codes from "./statusCodes.js";
 
     let asyncHandler = (func) => async (req, res, next) => {
       try {
