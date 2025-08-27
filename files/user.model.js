@@ -1,4 +1,4 @@
-model = `
+let model = `
         import mongoose from "mongoose";
         import required from "../utils/required.js";
         import bcrypt from "bcrypt";

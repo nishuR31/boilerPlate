@@ -1,4 +1,4 @@
-hideEmail = `
+let hideEmail = `
           export default function hideEmail(email) {
       let domain = email.split("@")[0].split("");
       let serve = "@" + email.split("@")[1];

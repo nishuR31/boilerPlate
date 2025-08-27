@@ -1,4 +1,4 @@
-apiResponse = `
+let apiResponse = `
         // apiResponse
 
     import codes from "../utils/statusCodes.js";

@@ -1,4 +1,4 @@
-asyncHandler = `
+let asyncHandler = `
         import ApiErrorResponse from "./apiErrorResponse.js";
     import codes from "./statusCodes.js";
 

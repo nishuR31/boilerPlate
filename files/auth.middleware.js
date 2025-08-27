@@ -1,4 +1,4 @@
-auth = `import codes from "../utils/statusCodes.js";
+let auth = `import codes from "../utils/statusCodes.js";
     import asyncHandler from "../utils/asyncHandler.js";
     import ApiErrorResponse from "../utils/apiErrorResponse.js";
     import { verifyAccess, verifyRefresh } from "../utils/tokenGenerator.js";

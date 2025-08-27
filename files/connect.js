@@ -1,4 +1,4 @@
-connect = `
+let connect = `
         import mongoose from "mongoose";
 
         async function connect(){

@@ -1,4 +1,4 @@
-env = `PORT=
+let env = `PORT=
 MONGO_URI=
 SECRET_ACC=
 SECRET_REF=

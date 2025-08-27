@@ -1,4 +1,4 @@
-gitignore = `# Created by https://gitignore.org
+let gitignore = `# Created by https://gitignore.org
     # Node.gitignore
 
     # Logs

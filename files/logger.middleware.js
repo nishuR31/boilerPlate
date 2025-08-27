@@ -1,4 +1,4 @@
-logger = `
+let logger = `
       export default function logger(req, res, next) {
     console.log({
     method: req.method,

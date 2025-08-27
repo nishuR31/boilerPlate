@@ -1,4 +1,4 @@
-tokenGeneration = `
+let tokenGeneration = `
         import jwt from "jsonwebtoken";
         import tokenOptions from "./tokenOptions.js";
         function accessToken(payload) {

@@ -1,4 +1,4 @@
-tokenOptions = `
+let tokenOptions = `
         export default function tokenOptions(type) {
         return {
         expiresIn: type.toLowerCase().trim() === "access" ? "1d" : "7d", // token valid for 1 day

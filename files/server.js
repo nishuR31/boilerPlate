@@ -1,4 +1,4 @@
-server = `
+let server = `
     import connect from "./config/connect.js";
     import app from "./config/app.js";
     import dotenv from "dotenv";

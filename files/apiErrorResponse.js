@@ -1,4 +1,4 @@
-apiErrorResponse = `
+let apiErrorResponse = `
         import codes from "../utils/statusCodes.js";
 
     export default class ApiErrorResponse extends Error {

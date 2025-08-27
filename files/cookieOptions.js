@@ -1,4 +1,4 @@
-cookieOptions = `
+let cookieOptions = `
         export default function cookieOptions(type = "access") {
         return {
         httpOnly: true,
