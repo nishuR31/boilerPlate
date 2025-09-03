@@ -1,6 +1,7 @@
 let server = `
-    import connect from "./config/connect.js";
-    import app from "./config/app.js";
+    import connect from "./src/config/connect.js";
+    import app from "./src/config/app.js";
+    import redis from "./src/config/redis.js";
     import dotenv from "dotenv";
 
     dotenv.config();
@@ -13,6 +14,7 @@ let server = `
           console.log(\`Server fired up on port : \${port}\`);
         });
         connect();
+        redis();
       } catch (err) {
         console.error(\`Error occured firing up server and database : \${err}\`);
       }
