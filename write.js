@@ -30,6 +30,7 @@ import dependencies from "./files/dependencies.js";
 import connect from "./files/connect.js";
 import auth from "./files/auth.middleware.js";
 import packagejson from "./files/packagejson.js";
+import dev from "./files/devDependensies.js";
 
 // let __filename = fileURLToPath(import.meta.url);
 // let __dirname = path.dirname(__filename);
@@ -110,11 +111,16 @@ async function run() {
       )
     );
 
-    await sleep(1000, "\nChanging directory and install dependencies\n");
+    await sleep(1000, "\ninstalling dependencies\n");
     await execute(dependencies, {
       // cwd: path.resolve(
       //   path.dirname(fileURLToPath(import.meta.url)),
       //   "../backend"
+      cwd: backendDir,
+    });
+    await sleep(1000, "\ninstalling dev dependencies\n");
+
+    await execute(dev, {
       cwd: backendDir,
     });
 
