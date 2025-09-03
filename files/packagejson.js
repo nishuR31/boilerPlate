@@ -6,8 +6,8 @@ let packagejson = `{
   "type": "module",
 
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server.js"
+    "test": "echo \\"Error: no test specified\\" && exit 1",
+    "start": "node server.js",
     "dev": "npx nodemon server.js"
   },
   "keywords": [
