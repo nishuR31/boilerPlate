@@ -1,5 +1,5 @@
 let files = {
-  config: ["app.js", "connect.js","passport.js"],
+  config: ["app.js", "connect.js","passport.js","redis.js"],
   middleware: [
     "auth.middleware.js",
     "role.middleware.js",
