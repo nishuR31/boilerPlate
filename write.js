@@ -149,6 +149,33 @@ async function run() {
     });
     // console.log(parentDir, boilerPlateDir, backendDir);
 
+    process.on("exit", () => {
+      try {
+        process.chdir(parentDir); // move out so cwd isn't inside the folder to delete
+
+        const script = `
+      const fs = require('fs');
+      const path = ${JSON.stringify(boilerPlateDir)};
+      setTimeout(() => {
+        try {
+          fs.rmSync(path, { recursive: true, force: true });
+          console.log('Deleted:', path);
+        } catch (e) {
+          console.error('Delete failed:', e.message);
+        }
+      }, 2000); // wait half a second so parent process fully exits
+    `;
+
+        spawn(process.execPath, ["-e", script], {
+          detached: true,
+          stdio: "ignore",
+          cwd: parentDir,
+          windowsHide: true,
+        }).unref();
+      } catch (e) {
+        console.error("Schedule delete error:", e.message);
+      }
+    });
     await sleep(1000, "\nReady to work..\n");
   } catch (error) {
     console.log(`Error occured: ${error}`);
