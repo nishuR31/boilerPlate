@@ -29,6 +29,7 @@ import gitignore from "./files/gitignore.js";
 import dependencies from "./files/dependencies.js";
 import connect from "./files/connect.js";
 import auth from "./files/auth.middleware.js";
+import packagejson from "./files/packagejson.js";
 
 // let __filename = fileURLToPath(import.meta.url);
 // let __dirname = path.dirname(__filename);
@@ -81,6 +82,7 @@ async function run() {
       ".env": env,
       ".gitignore": gitignore,
       "server.js": server,
+      "package.json": packagejson,
       "src/config/app.js": app,
       "src/config/connect.js": connect,
       "src/middleware/auth.middleware.js": auth,
