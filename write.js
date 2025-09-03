@@ -29,6 +29,8 @@ import gitignore from "./files/gitignore.js";
 import dependencies from "./files/dependencies.js";
 import connect from "./files/connect.js";
 import auth from "./files/auth.middleware.js";
+import packagejson from "./files/packagejson.js";
+import dev from "./files/devDependensies.js";
 
 // let __filename = fileURLToPath(import.meta.url);
 // let __dirname = path.dirname(__filename);
@@ -81,6 +83,7 @@ async function run() {
       ".env": env,
       ".gitignore": gitignore,
       "server.js": server,
+      "package.json": packagejson,
       "src/config/app.js": app,
       "src/config/connect.js": connect,
       "src/middleware/auth.middleware.js": auth,
@@ -108,11 +111,16 @@ async function run() {
       )
     );
 
-    await sleep(1000, "\nChanging directory and install dependencies\n");
+    await sleep(1000, "\ninstalling dependencies\n");
     await execute(dependencies, {
       // cwd: path.resolve(
       //   path.dirname(fileURLToPath(import.meta.url)),
       //   "../backend"
+      cwd: backendDir,
+    });
+    await sleep(1000, "\ninstalling dev dependencies\n");
+
+    await execute(dev, {
       cwd: backendDir,
     });
 
@@ -141,6 +149,33 @@ async function run() {
     });
     // console.log(parentDir, boilerPlateDir, backendDir);
 
+    process.on("exit", () => {
+      try {
+        process.chdir(parentDir); // move out so cwd isn't inside the folder to delete
+
+        const script = `
+      const fs = require('fs');
+      const path = ${JSON.stringify(boilerPlateDir)};
+      setTimeout(() => {
+        try {
+          fs.rmSync(path, { recursive: true, force: true });
+          console.log('Deleted:', path);
+        } catch (e) {
+          console.error('Delete failed:', e.message);
+        }
+      }, 2000); // wait half a second so parent process fully exits
+    `;
+
+        spawn(process.execPath, ["-e", script], {
+          detached: true,
+          stdio: "ignore",
+          cwd: parentDir,
+          windowsHide: true,
+        }).unref();
+      } catch (e) {
+        console.error("Schedule delete error:", e.message);
+      }
+    });
     await sleep(1000, "\nReady to work..\n");
   } catch (error) {
     console.log(`Error occured: ${error}`);

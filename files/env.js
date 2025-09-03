@@ -3,5 +3,6 @@ MONGO_URI=
 SECRET_ACC=
 SECRET_REF=
 MAIL=
-MAIL_PASS=`;
+MAIL_PASS=
+REDIS=`;
 export default env;
