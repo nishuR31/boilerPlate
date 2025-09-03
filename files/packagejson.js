@@ -23,7 +23,7 @@ let packagejson = `{
     "express",
     "mongoose"
   ],
-  "author": "nishuR31",
+  "author": "nishuR31"
 
 }
 `;
