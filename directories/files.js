@@ -1,5 +1,5 @@
 let files = {
-  config: ["app.js", "connect.js","passport.js","redis.js"],
+  config: ["app.js", "connect.js", "passport.js", "redis.js"],
   middleware: [
     "auth.middleware.js",
     "role.middleware.js",
@@ -11,6 +11,8 @@ let files = {
   utils: [
     "tokenGenerator.js",
     "mailer.js",
+    "json.js",
+    "time.js",
     "statusCodes.js",
     "cookieOptions.js",
     "tokenOptions.js",

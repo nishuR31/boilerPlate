@@ -24,6 +24,8 @@ import model from "./files/user.model.js";
 import user from "./files/user.controller.js";
 import logger from "./files/logger.middleware.js";
 import app from "./files/app.js";
+import json from "./files/json.js";
+import time from "./files/time.js";
 import server from "./files/server.js";
 import gitignore from "./files/gitignore.js";
 import dependencies from "./files/dependencies.js";
@@ -86,6 +88,7 @@ async function run() {
       "package.json": packagejson,
       "src/config/app.js": app,
       "src/config/connect.js": connect,
+      "src/config/redis.js": redis,
       "src/middleware/auth.middleware.js": auth,
       "src/middleware/role.middleware.js": ``,
       "src/middleware/uploader.middleware.js": ``,
@@ -103,6 +106,8 @@ async function run() {
       "src/utils/apiResponse.js": apiResponse,
       "src/utils/OTP.js": OTP,
       "src/utils/required.js": required,
+      "src/utils/json.js": json,
+      "src/utils/time.js": time,
     };
 
     await Promise.all(
