@@ -145,16 +145,7 @@ let user = `
       ).res()
     );
 });
-      return res
-        .status(codes.created)
-        .json(
-          new ApiResponse(
-            "Account created and registered successfully,please return to login",
-            codes.created,
-            { userName: userName, email: hideEmail(email) }
-          ).res()
-        );
-    });
+
 
     /////////////////////////////////////////////////////////////////
 
