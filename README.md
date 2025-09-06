@@ -60,6 +60,8 @@ SECRET_ACC=secret token for access token
 SECRET_REF=secret token for refresh token
 MAIL=your mail(gmail)
 MAIL_PASS=mail app password(not mail password)
+KEY=key for redis hash
+DEV=1 (future for dev mode off on)
 ```
 
 ## File Upload Usage
