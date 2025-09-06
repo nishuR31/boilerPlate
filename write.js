@@ -24,6 +24,7 @@ import model from "./files/user.model.js";
 import user from "./files/user.controller.js";
 import logger from "./files/logger.middleware.js";
 import app from "./files/app.js";
+import cron from "./files/cron.js";
 import json from "./files/json.js";
 import time from "./files/time.js";
 import server from "./files/server.js";
@@ -108,6 +109,7 @@ async function run() {
       "src/utils/required.js": required,
       "src/utils/json.js": json,
       "src/utils/time.js": time,
+      "src/utils/cron.js": cron,
     };
 
     await Promise.all(
