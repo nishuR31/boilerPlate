@@ -13,6 +13,7 @@ let files = {
     "mailer.js",
     "json.js",
     "time.js",
+    "cron.js",
     "statusCodes.js",
     "cookieOptions.js",
     "tokenOptions.js",
