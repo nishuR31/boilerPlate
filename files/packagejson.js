@@ -7,9 +7,10 @@ let packagejson = `
   "type": "module",
 
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "echo \'Error: no test specified\' && exit 1",
     "start": "node server.js",
-    "dev": "npx nodemon server.js" // node --watch server.js
+    "dev": "npx nodemon server.js",
+    "dev-n":"node --watch server.js"
   },
   "keywords": [
     "redis",
