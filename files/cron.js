@@ -10,7 +10,7 @@ export default function cronTask(sequence, func) {
         console.error("Task error:", err);
       }
     });
-    console.log(`Task scheduled: ${sequence}`);
+    console.log(\`Task scheduled: \${sequence}\`);
   } catch (err) {
     console.error("Cron scheduling error:", err);
   }
