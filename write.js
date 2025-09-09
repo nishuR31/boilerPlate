@@ -34,6 +34,7 @@ import connect from "./files/connect.js";
 import auth from "./files/auth.middleware.js";
 import packagejson from "./files/packagejson.js";
 import dev from "./files/devDependensies.js";
+import redis from "./files/redis.js";
 
 // let __filename = fileURLToPath(import.meta.url);
 // let __dirname = path.dirname(__filename);
