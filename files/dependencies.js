@@ -1,2 +1,2 @@
-let dependencies = `npm i express mongoose express-fileupload morgan helmet cookie-parser cors express-rate-limit dotenv jsonwebtoken bcrypt`;
+let dependencies = `npm i express mongoose express-fileupload morgan helmet cookie-parser cors express-rate-limit dotenv jsonwebtoken bcrypt axios node-cron`;
 export default dependencies;

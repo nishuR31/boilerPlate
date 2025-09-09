@@ -141,19 +141,17 @@ export let register = asyncHandler(async (req, res) => {
       );
   }
 
-  return res
-    .status(codes.created)
-    .json(
-      new ApiResponse(
-        "Account created and registered successfully,please return to login",
-        codes.created,
-        {
-          userName: user.userName,
-          email: hideEmail(user.email),
-          photoUrl: user.photoUrl,
-        }
-      ).res()
-    );
+  return res.status(codes.created).json(
+    new ApiResponse(
+      "Account created and registered successfully,please return to login",
+      codes.created,
+      {
+        userName: user.userName,
+        email: hideEmail(user.email),
+        photoUrl: user.photoUrl,
+      }
+    ).res()
+  );
 });
 
 /////////////////////////////////////////////////////////////////
@@ -186,11 +184,11 @@ export let login = asyncHandler(async (req, res) => {
       );
   }
 
-  let emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+.[a-zA-Z]{2,}$/;
+  let emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+.[a-zA-Z]{2,}\$/;
   let field = emailRegex.test(emailUser) ? "email" : "userName";
 
-  let user = await User.findOne({ $or: [{ [field]: emailUser }] });
-  // let user = await User.findOne({ $or: [{ [field]: emailUser }] }).select(" -refreshToken -otp ");
+  let user = await User.findOne({ \$or: [{ [field]: emailUser }] });
+  // let user = await User.findOne({ \$or: [{ [field]: emailUser }] }).select(" -refreshToken -otp ");
   if (!user) {
     return res
       .status(codes.notFound)
@@ -481,5 +479,28 @@ export let getAllUsers = asyncHandler(async (req, res) => {
     }).res()
   );
 });
+
+///////////////////////////////////////////////////////////
+
+export let del = asyncHandler(async (req, res) => {
+  let exist = json.parse(await red.hGet(\`user:\${process.env.KEY}\`, "login"));
+  let user = await User.findByIdAndDelete(req.user._id ?? exist._id);
+  if (!user) {
+    return res
+      .status(codes.notFound)
+      .json(new ApiErrorResponse("User not found.", codes.notFound).res());
+  }
+
+  let keys = await red.get(\`user:*\`);
+  if (keys) {
+    let delkeys = keys.filter((key) => key !== "user:0000");
+    await red.del(...delkeys);
+  }
+
+  return res
+    .status(codes.ok)
+    .json(new ApiResponse("Users successfully deleted", codes.ok).res());
+});
+
 `;
 export default user;

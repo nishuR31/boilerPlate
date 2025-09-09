@@ -4,5 +4,6 @@ SECRET_ACC=
 SECRET_REF=
 MAIL=
 MAIL_PASS=
-REDIS=`;
+REDIS=
+KEY=`;
 export default env;

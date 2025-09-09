@@ -1,4 +1,5 @@
-let packagejson = `{
+let packagejson = `
+{
   "name": "backend",
   "version": "1.0.0",
   "description": "A backend for my project",
@@ -6,9 +7,9 @@ let packagejson = `{
   "type": "module",
 
   "scripts": {
-    "test": "echo \\"Error: no test specified\\" && exit 1",
+    "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node server.js",
-    "dev": "npx nodemon server.js"
+    "dev": "npx nodemon server.js" // node --watch server.js
   },
   "keywords": [
     "redis",

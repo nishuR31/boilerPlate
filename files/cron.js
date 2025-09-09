@@ -1,19 +1,49 @@
-let cron=
-  `import cron from "node-cron";
+let cron = `
+import cron from "node-cron";
 
-export default function cronTask(sequence, func) {
-  try {
-    cron.schedule(sequence, async () => {
-      try {
-        await func(); // your async function runs here
-      } catch (err) {
-        console.error("Task error:", err);
-      }
-    });
-    console.log(\`Task scheduled: \${sequence}\`);
-  } catch (err) {
-    console.error("Cron scheduling error:", err);
-  }
-}`
+let store = new Map();
+
+let cronTask = {
+  start: async function (instance, cb) {
+    try {
+      await this.stop(instance);
+      let task = cron.schedule(instance.time, async () => {
+        try {
+          await cb(instance);
+        } catch (err) {
+          console.log(\`Error setting up cron: \${err}\`);
+        }
+      });
+      task.start();
+      store.set(instance_id.toString(), task);
+      return task;
+    } catch (err) {
+      console.log(\`Fatal error starting cron :\${err}\`);
+    }
+  },
+
+  stop: async function (instance) {
+    try {
+      let task = store.get(instance._id.toString());
+      task.stop();
+      store.clear(instance._id);
+      console.log(\`Cron stopped\`);
+    } catch (err) {
+      console.log(\`Fatal error starting cron :\${err}\`);
+    }
+  },
+
+  restart: async function (instance, cb) {
+    try {
+      await this.stop(instance);
+      return await this.start(instance);
+    } catch (err) {
+      console.log(\`Fatal error starting cron :\${err}\`);
+    }
+  },
+};
+
+export default cronTask;
+`;
 
 export default cron;

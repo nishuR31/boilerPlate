@@ -21,7 +21,7 @@ let files = {
     "asyncHandler.js",
     "apiErrorResponse.js",
     "apiResponse.js",
-    "getOtp.js",
+    "OTP.js",
     "required.js",
     "hideEmail.js",
   ],

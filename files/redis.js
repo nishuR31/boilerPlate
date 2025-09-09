@@ -1,4 +1,5 @@
-let redis = `import { createClient } from "redis";
+let redis = `
+import { createClient } from "redis";
 
 export default async function redis() {
   try {
@@ -7,6 +8,7 @@ export default async function redis() {
     red.on("error", (err) => {
       console.log(\`Redis threw error while running: \${err}\`);
     });
+    console.log(\`Redis installed.\`);
   } catch (err) {
     console.log(\`Error while redis connecting: \${err}\`);
   }
