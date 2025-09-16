@@ -4,7 +4,7 @@ import morgan from "morgan";
 import cors from "cors";
 import helmet from "helmet";
 import cookie from "cookie-parser";
-import logger from "../midlleware/logger.middleware.js";
+import logger from "../middleware/logger.middleware.js";
 import codes from "../utils/statusCodes.js";
 import rateLimit from "express-rate-limit";
 import path from "path";
