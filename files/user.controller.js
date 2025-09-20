@@ -44,7 +44,7 @@ export let register = asyncHandler(async (req, res) => {
       );
   }
 
-  if (!/d/.test(password)) {
+  if (!/\\d/.test(password)) {
     return res
       .status(codes.badRequest)
       .json(
@@ -77,7 +77,7 @@ export let register = asyncHandler(async (req, res) => {
       );
   }
 
-  if (/s/.test(password)) {
+  if (/\\s/.test(password)) {
     return res
       .status(codes.badRequest)
       .json(
@@ -88,7 +88,7 @@ export let register = asyncHandler(async (req, res) => {
       );
   }
 
-  if (!/W/.test(password)) {
+  if (!/\\W/.test(password)) {
     return res
       .status(codes.badRequest)
       .json(
