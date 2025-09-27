@@ -26,6 +26,7 @@ import logger from "./files/logger.middleware.js";
 import app from "./files/app.js";
 import cron from "./files/cron.js";
 import json from "./files/json.js";
+import driveLink from "./files/driveLink.js";
 import time from "./files/time.js";
 import server from "./files/server.js";
 import gitignore from "./files/gitignore.js";
@@ -109,6 +110,7 @@ async function run() {
       "src/utils/OTP.js": OTP,
       "src/utils/required.js": required,
       "src/utils/json.js": json,
+      "src/utils/driveLink.js": driveLink,
       "src/utils/time.js": time,
       "src/utils/cron.js": cron,
     };

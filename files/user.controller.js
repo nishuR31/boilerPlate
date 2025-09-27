@@ -122,13 +122,6 @@ export let register = asyncHandler(async (req, res) => {
       );
   }
 
-  // await User.create({
-  //   firstName,
-  //   lastName,
-  //   email,
-  //   password,
-  //   userName,
-  // });
   let user = await User.create(req.body);
   if (!user) {
     return res
@@ -157,7 +150,7 @@ export let register = asyncHandler(async (req, res) => {
 /////////////////////////////////////////////////////////////////
 
 export let login = asyncHandler(async (req, res) => {
-  let exist = json.parse(await red.hGet(\`user:\${user._id}\`, "login"));
+  let exist = json.parse(await red.hGet(\`user:\${process.env.KEY}\`, "login"));
   if (req.user || exist) {
     return res.status(codes.ok).json(
       new ApiResponse(
@@ -188,7 +181,6 @@ export let login = asyncHandler(async (req, res) => {
   let field = emailRegex.test(emailUser) ? "email" : "userName";
 
   let user = await User.findOne({ \$or: [{ [field]: emailUser }] });
-  // let user = await User.findOne({ \$or: [{ [field]: emailUser }] }).select(" -refreshToken -otp ");
   if (!user) {
     return res
       .status(codes.notFound)
@@ -214,7 +206,7 @@ export let login = asyncHandler(async (req, res) => {
   res.cookie("accessToken", accessToken, cookieOptions("access"));
   res.cookie("refreshToken", refreshToken, cookieOptions("refresh"));
   await red.hSet(
-    \`user:\${user._id}\`,
+    \`user:\${process.env.KEY}\`,
     "login",
     json.str({ userName: user.userName, _id: user._id })
   ); //1day
@@ -249,7 +241,7 @@ export let login = asyncHandler(async (req, res) => {
 
 export let profile = asyncHandler(async (req, res) => {
   let id = req.params.id;
-  let exist = json.parse(await red.hGet(\`user:\${user._id}\`, "profile"));
+  let exist = json.parse(await red.hGet(\`user:\${process.env.KEY}\`, "profile"));
   if (exist) {
     return res.status(codes.ok).json(
       new ApiResponse(\`User \${user.userName} found successfully.\`, codes.ok, {
@@ -280,7 +272,7 @@ export let profile = asyncHandler(async (req, res) => {
       .json(new ApiErrorResponse("No user found.", codes.notFound).res());
   }
   await red.hSet(
-    \`user:\${user._id}\`,
+    \`user:\${process.env.KEY}\`,
     "profile",
     json.str({
       _id: user._id,
@@ -322,7 +314,7 @@ export let profile = asyncHandler(async (req, res) => {
 });
 /////////////////////////////////////////////////////////////
 export let logout = asyncHandler(async (req, res) => {
-  // let exist=json.parse(await red.hGet(\`user:\${user._id}\`,"login))
+  // let exist=json.parse(await red.hGet(\`user:\${process.env.KEY}\`,"login))
   for (let cookie in req.cookies) {
     res.clearCookie(cookie, {
       httpOnly: true,
@@ -334,9 +326,7 @@ export let logout = asyncHandler(async (req, res) => {
 
   const keys = await red.keys("user:*");
   if (keys) {
-    let delKeys = keys.filter((key) => key !== "user:0000");
-    // await Promise.all(delKeys.map(key=>red.del(key)))
-    await red.del(...delKeys);
+    await red.del(...keys);
   }
 
   return res
@@ -422,7 +412,7 @@ export let updateProfile = asyncHandler(async (req, res) => {
 
   await user.save();
   await red.hSet(
-    \`user:\${user._id}\`,
+    \`user:\${process.env.KEY}\`,
     "profile",
     json.parse({
       _id: user._id,
@@ -493,8 +483,7 @@ export let del = asyncHandler(async (req, res) => {
 
   let keys = await red.get(\`user:*\`);
   if (keys) {
-    let delkeys = keys.filter((key) => key !== "user:0000");
-    await red.del(...delkeys);
+    await red.del(...keys);
   }
 
   return res
